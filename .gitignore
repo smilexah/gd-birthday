@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+*.log
+backups/
+.vite/
+coverage/
+.DS_Store
+.vscode/
+.idea/
+frontend/.impeccable/hook.cache.json

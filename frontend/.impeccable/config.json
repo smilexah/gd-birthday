@@ -1,0 +1,44 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "src/public/public.css"
+        ],
+        "createdAt": "2026-11-22T22:19:44.222Z",
+        "reason": "approved customer mockup docs/gd-birthday-main-v12.html, styles copied verbatim per user instruction"
+      },
+      {
+        "rule": "border-accent-on-rounded",
+        "value": "*",
+        "files": [
+          "src/public/public.css"
+        ],
+        "createdAt": "2026-11-22T22:19:44.485Z",
+        "reason": "approved customer mockup docs/gd-birthday-main-v12.html, styles copied verbatim per user instruction"
+      },
+      {
+        "rule": "border-accent-on-rounded",
+        "value": "*",
+        "files": [
+          "src/public/CakeStage.vue"
+        ],
+        "createdAt": "2026-11-22T22:19:44.753Z",
+        "reason": "approved customer mockup docs/gd-birthday-main-v12.html, styles copied verbatim per user instruction"
+      },
+      {
+        "rule": "border-accent-on-rounded",
+        "value": "*",
+        "files": [
+          "src/public/WishForm.vue"
+        ],
+        "createdAt": "2026-11-22T22:19:44.991Z",
+        "reason": "approved customer mockup docs/gd-birthday-main-v12.html, styles copied verbatim per user instruction"
+      }
+    ]
+  }
+}
