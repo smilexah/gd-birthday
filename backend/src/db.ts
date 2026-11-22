@@ -61,10 +61,13 @@ export async function getSettings(): Promise<Settings> {
   const row = result.rows[0]
   const isOpen: boolean = row ? row.is_open : false
   const closesAt: Date | null = row ? row.closes_at : null
-  const accepting = isOpen && (closesAt === null || Date.now() < closesAt.getTime())
   return {
     isOpen,
     closesAt: closesAt ? closesAt.toISOString() : null,
-    accepting,
+    accepting: isAccepting(isOpen, closesAt, Date.now()),
   }
+}
+
+export function isAccepting(isOpen: boolean, closesAt: Date | null, now: number) {
+  return isOpen && (closesAt === null || now < closesAt.getTime())
 }

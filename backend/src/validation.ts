@@ -35,6 +35,8 @@ export const feedQuerySchema = z.object({
   limit: z.preprocess(emptyToUndefined, z.coerce.number().int().min(1).max(100).default(50)),
 })
 
+export type FeedQuery = z.infer<typeof feedQuerySchema>
+
 export const loginSchema = z.object({
   login: z.string().max(200),
   password: z.string().max(200),

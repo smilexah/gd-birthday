@@ -1,0 +1,3 @@
+ALTER TABLE settings ALTER COLUMN closes_at SET DEFAULT '2026-11-25 00:00:00+05';
+
+UPDATE settings SET closes_at = '2026-11-25 00:00:00+05' WHERE closes_at = '2026-11-24 23:59:00+05';

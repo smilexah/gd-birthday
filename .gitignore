@@ -9,3 +9,4 @@ coverage/
 .vscode/
 .idea/
 frontend/.impeccable/hook.cache.json
+loadtest/results/

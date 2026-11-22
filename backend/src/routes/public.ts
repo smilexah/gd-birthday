@@ -1,9 +1,9 @@
 import crypto from 'node:crypto'
 import type { FastifyInstance, FastifyReply } from 'fastify'
 import { pool, toWish, getSettings, wishColumns, type WishRow } from '../db.js'
-import { feedQuerySchema, wishSchema, idSchema, firstIssue, workplaces } from '../validation.js'
+import { feedQuerySchema, wishSchema, idSchema, firstIssue, workplaces, type FeedQuery } from '../validation.js'
 import { hashIp, sha256, createAuthorToken, normalizeForDuplicates, hasLink, hasProfanity } from '../spam.js'
-import { getCached, setCached, clearCache } from '../cache.js'
+import { cachedJson, clearCache } from '../cache.js'
 import { addClient, removeClient, broadcast } from '../events.js'
 
 export async function countVisible() {
@@ -12,7 +12,6 @@ export async function countVisible() {
 }
 
 export async function announceStats() {
-  clearCache()
   broadcast('stats', { total: await countVisible() })
 }
 
@@ -60,12 +59,11 @@ export async function publicRoutes(app: FastifyInstance) {
       return sendError(reply, 400, 'validation', issue.message, issue.field)
     }
     const query = parsed.data
-    const cacheKey = 'feed:' + JSON.stringify(query)
-    const cached = getCached(cacheKey)
-    if (cached) {
-      return cached
-    }
+    const json = await cachedJson('feed:' + JSON.stringify(query), () => loadFeed(query))
+    return reply.type('application/json; charset=utf-8').send(json)
+  })
 
+  async function loadFeed(query: FeedQuery) {
     const conditions = ["w.status = 'visible'"]
     const values: unknown[] = []
     if (query.filter !== 'all') {
@@ -92,22 +90,15 @@ export async function publicRoutes(app: FastifyInstance) {
 
     const rows = result.rows.slice(0, query.limit)
     const hasMore = result.rows.length > query.limit
-    const response = {
+    return {
       items: rows.map(toWish),
       nextCursor: hasMore && !useSince ? rows[rows.length - 1].number : null,
     }
-    setCached(cacheKey, response)
-    return response
-  })
+  }
 
-  app.get('/api/stats', async () => {
-    const cached = getCached('stats')
-    if (cached) {
-      return cached
-    }
-    const stats = await getPublicStats()
-    setCached('stats', stats)
-    return stats
+  app.get('/api/stats', async (request, reply) => {
+    const json = await cachedJson('stats', getPublicStats)
+    return reply.type('application/json; charset=utf-8').send(json)
   })
 
   app.post('/api/wishes', { config: { rateLimit: { max: 30, timeWindow: '10 minutes' } } }, async (request, reply) => {
@@ -211,11 +202,10 @@ export async function publicRoutes(app: FastifyInstance) {
       return sendError(reply, 403, 'forbidden', 'Wrong author token')
     }
     await pool.query("UPDATE wishes SET status = 'deleted' WHERE id = $1", [id.data])
+    clearCache()
     if (wish.status === 'visible') {
       broadcast('removed', { id: id.data })
       await announceStats()
-    } else {
-      clearCache()
     }
     return reply.code(204).send()
   })

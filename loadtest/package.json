@@ -1,0 +1,12 @@
+{
+  "name": "gd-birthday-loadtest",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node run.mjs"
+  },
+  "devDependencies": {
+    "autocannon": "^9.0.0"
+  }
+}

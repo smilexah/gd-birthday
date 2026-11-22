@@ -6,10 +6,10 @@ import rateLimit from '@fastify/rate-limit'
 import fastifyStatic from '@fastify/static'
 import { pino } from 'pino'
 import { config, missingVariables } from './config.js'
-import { pool, getSettings } from './db.js'
+import { pool } from './db.js'
 import { runMigrations } from './migrate.js'
-import { clearCache } from './cache.js'
-import { closeAllClients, announceSettingsIfChanged } from './events.js'
+import { closeAllClients } from './events.js'
+import { startClosingWatch, stopClosingWatch } from './closing.js'
 import { publicRoutes } from './routes/public.js'
 import { adminRoutes } from './routes/admin.js'
 
@@ -24,6 +24,7 @@ const app = Fastify({
   loggerInstance: logger,
   trustProxy: config.trustProxy,
   bodyLimit: 16 * 1024,
+  disableRequestLogging: true,
 })
 
 app.removeContentTypeParser('application/json')
@@ -123,20 +124,6 @@ app.setNotFoundHandler((request, reply) => {
   return reply.code(404).send({ error: 'not_found', message: 'Not found' })
 })
 
-let settingsTimer: NodeJS.Timeout | undefined
-
-async function checkSettings() {
-  try {
-    const settings = await getSettings()
-    if (announceSettingsIfChanged(settings)) {
-      clearCache()
-      app.log.info({ accepting: settings.accepting }, 'Accepting state changed')
-    }
-  } catch (error) {
-    app.log.error(error, 'Settings check failed')
-  }
-}
-
 let shuttingDown = false
 
 async function shutdown(signal: string) {
@@ -145,7 +132,7 @@ async function shutdown(signal: string) {
   }
   shuttingDown = true
   app.log.info(`${signal} received, shutting down`)
-  clearInterval(settingsTimer)
+  stopClosingWatch()
   closeAllClients()
   try {
     await app.close()
@@ -161,8 +148,7 @@ process.on('SIGINT', () => shutdown('SIGINT'))
 
 try {
   await runMigrations((message) => app.log.info(message))
-  await checkSettings()
-  settingsTimer = setInterval(checkSettings, 30000)
+  await startClosingWatch((message) => app.log.info(message))
   await app.listen({ port: config.port, host: config.host })
 } catch (error) {
   app.log.error(error, 'Server failed to start')

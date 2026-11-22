@@ -5,6 +5,7 @@ import { pool, toWish, toAdminWish, getSettings, wishColumns, type WishRow } fro
 import { loginSchema, adminListSchema, statusSchema, settingsSchema, idSchema, firstIssue, workplaces } from '../validation.js'
 import { broadcast, announceSettings } from '../events.js'
 import { clearCache } from '../cache.js'
+import { scheduleClosing } from '../closing.js'
 import { buildWishesWorkbook, astanaDate } from '../excel.js'
 import { announceStats, sendError } from './public.js'
 
@@ -213,6 +214,7 @@ export async function adminRoutes(app: FastifyInstance) {
       return sendError(reply, 404, 'not_found', 'Wish not found')
     }
     if (before.status !== newStatus) {
+      clearCache()
       if (newStatus === 'visible') {
         broadcast('wish', toWish(after))
       } else {
@@ -232,11 +234,10 @@ export async function adminRoutes(app: FastifyInstance) {
     const oldStatus = found.rows[0].status
     if (oldStatus !== 'deleted') {
       await pool.query("UPDATE wishes SET status = 'deleted' WHERE id = $1", [id])
+      clearCache()
       if (oldStatus === 'visible') {
         broadcast('removed', { id })
         await announceStats()
-      } else {
-        clearCache()
       }
     }
     return reply.code(204).send()
@@ -284,6 +285,7 @@ export async function adminRoutes(app: FastifyInstance) {
     const settings = await getSettings()
     clearCache()
     announceSettings(settings)
+    scheduleClosing(settings)
     return settings
   })
 

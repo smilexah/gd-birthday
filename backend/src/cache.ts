@@ -1,26 +1,41 @@
 const cacheLifetimeMs = 3000
 
-const entries = new Map<string, { expiresAt: number; value: unknown }>()
+const entries = new Map<string, { expiresAt: number; json: string }>()
+const loading = new Map<string, Promise<string>>()
+let generation = 0
 
-export function getCached<T>(key: string): T | undefined {
+export function cachedJson(key: string, load: () => Promise<unknown>): Promise<string> {
   const entry = entries.get(key)
-  if (!entry) {
-    return undefined
+  if (entry && Date.now() <= entry.expiresAt) {
+    return Promise.resolve(entry.json)
   }
-  if (Date.now() > entry.expiresAt) {
-    entries.delete(key)
-    return undefined
+  const running = loading.get(key)
+  if (running) {
+    return running
   }
-  return entry.value as T
-}
-
-export function setCached(key: string, value: unknown) {
-  if (entries.size > 1000) {
-    entries.clear()
-  }
-  entries.set(key, { expiresAt: Date.now() + cacheLifetimeMs, value })
+  const startedGeneration = generation
+  const promise = load()
+    .then((value) => {
+      const json = JSON.stringify(value)
+      if (startedGeneration === generation) {
+        if (entries.size > 1000) {
+          entries.clear()
+        }
+        entries.set(key, { expiresAt: Date.now() + cacheLifetimeMs, json })
+      }
+      return json
+    })
+    .finally(() => {
+      if (loading.get(key) === promise) {
+        loading.delete(key)
+      }
+    })
+  loading.set(key, promise)
+  return promise
 }
 
 export function clearCache() {
+  generation += 1
   entries.clear()
+  loading.clear()
 }
