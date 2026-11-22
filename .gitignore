@@ -10,3 +10,4 @@ coverage/
 .idea/
 frontend/.impeccable/hook.cache.json
 loadtest/results/
+cloudflared/

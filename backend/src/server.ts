@@ -5,7 +5,7 @@ import helmet from '@fastify/helmet'
 import rateLimit from '@fastify/rate-limit'
 import fastifyStatic from '@fastify/static'
 import { pino } from 'pino'
-import { config, missingVariables } from './config.js'
+import { config, missingVariables, clientIp } from './config.js'
 import { pool } from './db.js'
 import { runMigrations } from './migrate.js'
 import { closeAllClients } from './events.js'
@@ -62,6 +62,12 @@ app.setErrorHandler((error: FastifyError, request, reply) => {
   return reply.code(status).send({ error: errorCodes[status] ?? 'bad_request', message: error.message })
 })
 
+app.addHook('onRequest', async (request, reply) => {
+  if (config.forceHttps && request.headers['x-forwarded-proto'] === 'http') {
+    return reply.redirect(`https://${request.headers.host}${request.url}`, 301)
+  }
+})
+
 await app.register(helmet, {
   contentSecurityPolicy: {
     useDefaults: false,
@@ -84,6 +90,7 @@ await app.register(rateLimit, {
   global: true,
   max: 1200,
   timeWindow: '1 minute',
+  keyGenerator: (request) => clientIp(request),
   errorResponseBuilder: (request, context) => ({
     statusCode: 429,
     error: 'rate_limited',

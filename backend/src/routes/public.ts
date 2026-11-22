@@ -1,5 +1,6 @@
 import crypto from 'node:crypto'
 import type { FastifyInstance, FastifyReply } from 'fastify'
+import { clientIp } from '../config.js'
 import { pool, toWish, getSettings, wishColumns, type WishRow } from '../db.js'
 import { feedQuerySchema, wishSchema, idSchema, firstIssue, workplaces, type FeedQuery } from '../validation.js'
 import { hashIp, sha256, createAuthorToken, normalizeForDuplicates, hasLink, hasProfanity } from '../spam.js'
@@ -150,7 +151,7 @@ export async function publicRoutes(app: FastifyInstance) {
       }
     }
 
-    const ipHash = hashIp(request.ip)
+    const ipHash = hashIp(clientIp(request))
     const textNormalized = normalizeForDuplicates(wish.text)
 
     const recent = await pool.query(
@@ -221,7 +222,7 @@ export async function publicRoutes(app: FastifyInstance) {
     }
     await pool.query('INSERT INTO reports (wish_id, ip_hash) VALUES ($1, $2) ON CONFLICT DO NOTHING', [
       id.data,
-      hashIp(request.ip),
+      hashIp(clientIp(request)),
     ])
     return reply.code(204).send()
   })

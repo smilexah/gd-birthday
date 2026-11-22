@@ -79,6 +79,8 @@ npm start -- --wipe-database
 | `IP_HASH_SALT` | соль для хеширования IP (в базе хранится только хеш) | случайная строка |
 | `COOKIE_SECURE` | флаг Secure у cookie админки. `true` за HTTPS, `false` для локального http | `true` |
 | `TRUST_PROXY` | доверять `X-Forwarded-For` от reverse proxy (нужно для лимитов по IP) | `true` |
+| `CLIENT_IP_HEADER` | заголовок с IP клиента от доверенного proxy. За Cloudflare `cf-connecting-ip`; пусто — IP из `X-Forwarded-For` | пусто |
+| `FORCE_HTTPS` | редирект на https, если proxy передал `X-Forwarded-Proto: http` | `false` |
 | `STATIC_DIR` | папка собранного фронтенда. В образе `/app/public` | `../frontend/dist` |
 | `LOG_LEVEL` | уровень логов pino | `info` |
 | `SEED_ENABLED` | разрешает `npm run seed`. В проде `false` | `false` |
@@ -98,12 +100,36 @@ docker compose ps        # app и db должны быть healthy
 curl http://127.0.0.1:3000/api/health   # {"ok":true}
 ```
 
-- Приложение слушает порт `3000` на хосте (меняется через `APP_PORT`). Порт базы наружу не публикуется.
+- Приложение слушает только `127.0.0.1:3000` на хосте (меняется через `APP_PORT`), снаружи порт недоступен. Порт базы не публикуется.
 - База хранится в именованном томе `gd-birthday_db-data`.
 - Обновление: `docker compose up -d --build` (миграции применятся при старте).
 - Логи: `docker compose logs -f app`.
 
-### Reverse proxy и HTTPS
+### Cloudflare Tunnel
+
+Если сервер во внутренней сети, сайт публикуется через Cloudflare Tunnel: nginx и сертификат на сервере не нужны, HTTPS делает Cloudflare. Файл `docker-compose.cloudflare.yml` добавляет сервис `tunnel` (cloudflared), который ходит к `app:3000` по сети compose.
+
+```bash
+mkdir -p cloudflared && chmod 700 cloudflared
+docker run --rm -it -u $(id -u):$(id -g) -e HOME=/w -v "$PWD/cloudflared:/w/.cloudflared" cloudflare/cloudflared:2026.11.1 tunnel login
+docker run --rm -u $(id -u):$(id -g) -e HOME=/w -v "$PWD/cloudflared:/w/.cloudflared" cloudflare/cloudflared:2026.11.1 tunnel create gd-birthday
+docker run --rm -u $(id -u):$(id -g) -e HOME=/w -v "$PWD/cloudflared:/w/.cloudflared" cloudflare/cloudflared:2026.11.1 tunnel route dns gd-birthday ДОМЕН
+```
+
+В `cloudflared/config.yml`:
+
+```yaml
+tunnel: <ID туннеля>
+credentials-file: /etc/cloudflared/<ID туннеля>.json
+ingress:
+  - hostname: ДОМЕН
+    service: http://app:3000
+  - service: http_status:404
+```
+
+В `.env`: `COMPOSE_FILE=docker-compose.yml:docker-compose.cloudflare.yml`, `CLIENT_IP_HEADER=cf-connecting-ip`, `FORCE_HTTPS=true`, `TRUST_PROXY=true`. Папка `cloudflared/` содержит ключи туннеля и в Git не попадает.
+
+### Reverse proxy и HTTPS (nginx)
 
 HTTPS, сертификат и поддомен настраивает администратор сервера. Требования к proxy:
 
@@ -165,7 +191,13 @@ docker compose exec -T db sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -
 docker compose exec -T db sh -c 'pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" --clean --if-exists' < backups/gd-YYYY-MM-DD-HHMM.dump
 ```
 
-Папка `backups/` в Git не попадает. На время приёма делать копию хотя бы раз в день (например, через cron).
+Папка `backups/` в Git не попадает. Скрипт `scripts/backup.sh` делает дамп и удаляет копии старше 7 дней. Ежедневный запуск через crontab пользователя:
+
+```
+0 22 * * * /путь/к/gd-birthday/scripts/backup.sh >> /путь/к/gd-birthday/backups/backup.log 2>&1
+```
+
+(22:00 UTC = 03:00 по Астане.)
 
 ## Удаление после праздника
 

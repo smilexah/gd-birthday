@@ -18,6 +18,16 @@ function readBoolean(name: string, fallback: boolean): boolean {
 
 const requiredNames = ['DATABASE_URL', 'ADMIN_PASSWORD', 'SESSION_SECRET', 'IP_HASH_SALT']
 
+export function clientIp(request: { ip: string; headers: Record<string, string | string[] | undefined> }) {
+  if (config.clientIpHeader) {
+    const value = request.headers[config.clientIpHeader]
+    if (typeof value === 'string' && value.trim() !== '') {
+      return value.trim()
+    }
+  }
+  return request.ip
+}
+
 export const missingVariables = requiredNames.filter((name) => readText(name) === '')
 
 export const config = {
@@ -30,6 +40,8 @@ export const config = {
   ipHashSalt: readText('IP_HASH_SALT'),
   cookieSecure: readBoolean('COOKIE_SECURE', false),
   trustProxy: readBoolean('TRUST_PROXY', false),
+  clientIpHeader: readText('CLIENT_IP_HEADER').toLowerCase(),
+  forceHttps: readBoolean('FORCE_HTTPS', false),
   staticDir: path.resolve(readText('STATIC_DIR', path.join(import.meta.dirname, '..', '..', 'frontend', 'dist'))),
   logLevel: readText('LOG_LEVEL', 'info'),
   seedEnabled: readBoolean('SEED_ENABLED', false),
