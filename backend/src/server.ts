@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import Fastify, { type FastifyError } from 'fastify'
+import Fastify, { LogController, type FastifyError } from 'fastify'
 import helmet from '@fastify/helmet'
 import rateLimit from '@fastify/rate-limit'
 import fastifyStatic from '@fastify/static'
@@ -24,7 +24,7 @@ const app = Fastify({
   loggerInstance: logger,
   trustProxy: config.trustProxy,
   bodyLimit: 16 * 1024,
-  disableRequestLogging: true,
+  logController: new LogController({ disableRequestLogging: true }),
 })
 
 app.removeContentTypeParser('application/json')
