@@ -4,40 +4,13 @@
     "ignoreFiles": [],
     "ignoreValues": [
       {
-        "rule": "side-tab",
+        "rule": "gradient-text",
         "value": "*",
         "files": [
-          "src/public/public.css"
+          "src/public/HeroSection.vue"
         ],
-        "createdAt": "2026-11-22T22:19:44.222Z",
-        "reason": "approved customer mockup docs/gd-birthday-main-v12.html, styles copied verbatim per user instruction"
-      },
-      {
-        "rule": "border-accent-on-rounded",
-        "value": "*",
-        "files": [
-          "src/public/public.css"
-        ],
-        "createdAt": "2026-11-22T22:19:44.485Z",
-        "reason": "approved customer mockup docs/gd-birthday-main-v12.html, styles copied verbatim per user instruction"
-      },
-      {
-        "rule": "border-accent-on-rounded",
-        "value": "*",
-        "files": [
-          "src/public/CakeStage.vue"
-        ],
-        "createdAt": "2026-11-22T22:19:44.753Z",
-        "reason": "approved customer mockup docs/gd-birthday-main-v12.html, styles copied verbatim per user instruction"
-      },
-      {
-        "rule": "border-accent-on-rounded",
-        "value": "*",
-        "files": [
-          "src/public/WishForm.vue"
-        ],
-        "createdAt": "2026-11-22T22:19:44.991Z",
-        "reason": "approved customer mockup docs/gd-birthday-main-v12.html, styles copied verbatim per user instruction"
+        "createdAt": "2026-11-22T22:24:25.030Z",
+        "reason": "TZ section 4 requires the director's name in gold metallic gloss; text gradient taken from approved mockup docs/gd-birthday-main-v12.html"
       }
     ]
   }

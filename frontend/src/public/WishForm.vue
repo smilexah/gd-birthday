@@ -154,8 +154,8 @@ onUnmounted(() => {
       <input id="fh" v-model="website" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px" autocomplete="off">
       <div id="fe" role="alert" style="color:#C22C66;font-weight:800;margin-top:12px;min-height:20px">{{ messageKey ? t(messageKey) : '' }}</div>
       <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:8px">
-        <button id="fx" type="button" style="cursor:pointer;background:#EEF1FF;color:#1A3CB0;border:0;border-bottom:4px solid #B7C3F0;border-radius:999px;padding:14px 26px;font:900 16px Nunito,sans-serif" @click="close">{{ t('form.cancel') }}</button>
-        <button type="submit" :disabled="sending" style="cursor:pointer;background:linear-gradient(#FFE27A,#F3B53C);color:#3B2300;border:0;border-bottom:5px solid #A6732F;border-radius:999px;padding:14px 30px;font:900 17px Nunito,sans-serif">{{ t('form.submit') }}</button>
+        <button id="fx" type="button" style="cursor:pointer;background:#EEF1FF;color:#1A3CB0;border:0;box-shadow:0 4px 0 #B7C3F0;border-radius:999px;padding:14px 26px;font:900 16px Nunito,sans-serif" @click="close">{{ t('form.cancel') }}</button>
+        <button type="submit" :disabled="sending" style="cursor:pointer;background:linear-gradient(#FFE27A,#F3B53C);color:#3B2300;border:0;box-shadow:0 5px 0 #A6732F;border-radius:999px;padding:14px 30px;font:900 17px Nunito,sans-serif">{{ t('form.submit') }}</button>
       </div>
     </form>
   </div>

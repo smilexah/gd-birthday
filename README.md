@@ -159,3 +159,4 @@ cd .. && rm -rf gd-birthday       # удалить папку проекта
 - **«Приём закрыт»** — наступило время закрытия или приём выключен вручную; открыть в админке, «Настройки».
 - **База не стартует** — `docker compose logs db`. Для postgres 18 том монтируется в `/var/lib/postgresql` (не в `/var/lib/postgresql/data`); старый том от другой версии PostgreSQL не подойдёт.
 - **Не входит в админку по http** — для локального запуска без HTTPS нужен `COOKIE_SECURE=false`.
+- **`npm ci` падает в Docker: «Missing: @emnapi/... from lock file»** — `frontend/package-lock.json` перезаписан `npm install` на Windows без пакетов для Linux. Пересоздать lock в контейнере: `docker run --rm -v "$PWD/frontend:/w" -w /w node:26-alpine npm install --package-lock-only`.
