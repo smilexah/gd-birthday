@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CakeSlice from './CakeSlice.vue'
 import { ApiError, deleteWish, errorKey, reportWish, type Wish } from './api'
@@ -9,14 +9,17 @@ import { listLength, loadMore, poke, reloadFeed, removeWishById, setAccepting, s
 
 const props = defineProps<{ formOpen: boolean }>()
 const emit = defineEmits<{ open: [] }>()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const POS = [0, 270, 450, 590, 700, 790]
 const SC = [1, 0.78, 0.62, 0.5, 0.4, 0.32]
 const filterCodes = ['all', 'apt', 'fil', 'off', 'log', 'reg']
+const ITEM_BOTTOM = 52
+const TOP_GAP = 24
 
 const stageEl = ref<HTMLElement | null>(null)
 const stageWidth = ref(1400)
+const stageHeight = ref(minStageHeight())
 const ready = ref(false)
 const reported = ref<number[]>(loadReported())
 const confirmId = ref<number | null>(null)
@@ -129,10 +132,30 @@ function onKeydown(event: KeyboardEvent) {
   }
 }
 
+function minStageHeight() {
+  return window.matchMedia('(max-width: 700px)').matches ? 500 : 470
+}
+
+function measureStage() {
+  const minHeight = minStageHeight()
+  const item = stageEl.value ? stageEl.value.querySelector<HTMLElement>('.it.act') : null
+  if (!item) {
+    stageHeight.value = minHeight
+    return
+  }
+  const needed = Math.ceil(ITEM_BOTTOM + item.offsetHeight + TOP_GAP)
+  stageHeight.value = Math.max(minHeight, needed)
+}
+
+function updateStageHeight() {
+  nextTick(measureStage)
+}
+
 function onResize() {
   if (stageEl.value) {
     stageWidth.value = stageEl.value.clientWidth
   }
+  updateStageHeight()
 }
 
 function autoPlay() {
@@ -216,10 +239,14 @@ watch(
   }
 )
 
+watch(() => [state.active, state.filter, state.version, state.wishes.length, state.accepting, locale.value, confirmId.value], updateStageHeight)
+
 onMounted(() => {
   onResize()
   window.addEventListener('resize', onResize)
   document.addEventListener('keydown', onKeydown)
+  document.fonts.ready.then(updateStageHeight)
+  document.fonts.addEventListener('loadingdone', updateStageHeight)
   if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     autoTimer = window.setInterval(autoPlay, 4000)
   }
@@ -231,6 +258,7 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('resize', onResize)
   document.removeEventListener('keydown', onKeydown)
+  document.fonts.removeEventListener('loadingdone', updateStageHeight)
   window.clearInterval(autoTimer)
   window.clearTimeout(confirmTimer)
 })
@@ -245,7 +273,7 @@ onUnmounted(() => {
         <button v-for="code in filterCodes" :key="code" class="fl" :class="{ on: state.filter === code }" style="background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.3);backdrop-filter:blur(8px)" @click="chooseFilter(code)">{{ t('filters.' + code) }}</button>
       </div>
     </div>
-    <div id="stage" ref="stageEl" :class="{ rdy: ready }" style="position: relative; height: 470px; overflow: hidden; touch-action: pan-y; user-select: none" @pointerdown="onPointerDown" @pointerup="onPointerUp">
+    <div id="stage" ref="stageEl" :class="{ rdy: ready }" :style="{ height: stageHeight + 'px' }" style="position: relative; overflow: hidden; touch-action: pan-y; user-select: none" @pointerdown="onPointerDown" @pointerup="onPointerUp">
       <div id="items">
         <div v-for="cell in cells" :key="cell.key" class="it" :class="{ slot: !cell.wish, act: cell.active }" :style="cell.style" @click="onCellClick(cell.index, cell.wish)">
           <template v-if="!cell.wish">
@@ -269,8 +297,8 @@ onUnmounted(() => {
           </template>
         </div>
       </div>
-      <button id="prev" :aria-label="t('stage.prev')" style="position: absolute; left: 24px; top: 235px; width: 62px; height: 62px; border-radius: 50%; border: 0; padding: 0; background: #2457F5; display: flex; align-items: center; justify-content: center; z-index: 50; cursor: pointer" @click="step(-1)"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6" /></svg></button>
-      <button id="next" :aria-label="t('stage.next')" style="position: absolute; right: 24px; top: 235px; width: 62px; height: 62px; border-radius: 50%; border: 0; padding: 0; background: #2457F5; display: flex; align-items: center; justify-content: center; z-index: 50; cursor: pointer" @click="step(1)"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg></button>
+      <button id="prev" :aria-label="t('stage.prev')" style="position: absolute; left: 24px; bottom: 173px; width: 62px; height: 62px; border-radius: 50%; border: 0; padding: 0; background: #2457F5; display: flex; align-items: center; justify-content: center; z-index: 50; cursor: pointer" @click="step(-1)"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6" /></svg></button>
+      <button id="next" :aria-label="t('stage.next')" style="position: absolute; right: 24px; bottom: 173px; width: 62px; height: 62px; border-radius: 50%; border: 0; padding: 0; background: #2457F5; display: flex; align-items: center; justify-content: center; z-index: 50; cursor: pointer" @click="step(1)"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg></button>
       <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 58px; background-color: #F2C4D2; background-image: radial-gradient(circle at 20px 0, #FFF6E0 18px, transparent 19px), linear-gradient(#F9D3DE, #C96C8E); background-size: 40px 100%, 100% 100%; background-repeat: repeat-x, no-repeat; box-shadow: 0 -8px 20px rgba(150,40,90,0.25)"></div>
     </div>
   </section>

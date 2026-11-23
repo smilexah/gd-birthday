@@ -58,8 +58,7 @@ body{margin:0}
 .gd-page section:nth-of-type(2){padding:90px 0 0 !important}
 .gd-page section:nth-of-type(2)>div:first-child{padding:0 16px !important}
 .gd-page h2{font-size:32px !important}
-.gd-page #stage{height:500px !important}
-.gd-page #prev,.gd-page #next{top:290px !important;width:46px !important;height:46px !important}
+.gd-page #prev,.gd-page #next{bottom:164px !important;width:46px !important;height:46px !important}
 .gd-page #prev{left:6px !important}.gd-page #next{right:6px !important}
 .gd-page .it.act .bub{width:250px !important;padding:16px 18px !important}
 .gd-page .it .bt{font-size:15px !important}
@@ -74,7 +73,7 @@ body{margin:0}
 .gd-page .it .bub:after{content:"";position:absolute;left:50%;bottom:-12px;margin-left:-9px;width:16px;height:16px;background:#fff;transform:rotate(45deg)}
 .gd-page .it.act .bub{width:300px;padding:20px 22px;display:flex;flex-direction:column;gap:10px}
 .gd-page .it:not(.act) .bub{padding:7px 14px;font-weight:900;font-size:15px;color:#1A3CB0;white-space:nowrap;box-shadow:4px 4px 0 #1A3CB0}
-.gd-page .it .bt{font-size:17px;line-height:1.5;font-weight:700;color:#1F2F4B;margin:0}
+.gd-page .it .bt{font-size:17px;line-height:1.5;font-weight:700;color:#1F2F4B;margin:0;overflow-wrap:anywhere;font-family:Nunito,system-ui,"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif}
 .gd-page .it .bn{font-size:21px;font-weight:900;color:#1A3CB0;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .gd-page .it .no{font-size:12px;font-weight:900;background:#FFD3DE;color:#8A1F42;border-radius:999px;padding:3px 9px}
 .gd-page .it .rep{align-self:flex-start;background:none;border:0;padding:0;font:700 12px Nunito,sans-serif;color:#5B6577;text-decoration:underline}
@@ -87,7 +86,7 @@ body{margin:0}
 .gd-page .fl{border:0;border-radius:999px;padding:10px 22px;font:900 15px Nunito,sans-serif;min-height:48px;cursor:pointer}
 .gd-page .fl.on{outline:4px solid #1A3CB0;outline-offset:2px}
 
-.gd-page #stage{background:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(232,178,94,.12) 100%)}
+.gd-page #stage{background:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(232,178,94,.12) 100%);transition:height .45s cubic-bezier(.3,.9,.3,1)}
 .gd-page #filters .fl.on{background:linear-gradient(#FFE9A8,#E8B25E) !important;color:#3B2300 !important;border-color:#FFE9A8 !important;outline:none}
 .gd-page .it .bub{background:linear-gradient(160deg,rgba(255,255,255,.22),rgba(255,255,255,.08));border:1px solid rgba(255,255,255,.38);border-radius:22px;box-shadow:0 14px 34px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 .gd-page .it .bub:after{background:#2C4A9E;border-right:1px solid rgba(255,255,255,.38);border-bottom:1px solid rgba(255,255,255,.38);width:14px;height:14px;margin-left:-7px;bottom:-8px}
